@@ -9,7 +9,13 @@ interface IERC20 {
 contract Escrow {
     address payable public owner;
     address payable public feeRecipient; // Address where the fee will be sent
-    uint256 constant feePercentage = 20; // Representing 0.2%, since we'll use basis points for calculation
+    uint256 public lowTierThreshold = 50 * (10 ** 18); // Representing 1000 stablecoin units
+    uint256 public midTierThreshold = 100 * (10 ** 18); // Representing 5000 stablecoin units
+    uint256 public highTierThreshold = 500 * (10 ** 18); // Representing 10000 stablecoin units
+
+    uint256 public lowTierFeePercentage = 7; // 0.7%
+    uint256 public midTierFeePercentage = 5; // 0.5%
+    uint256 public highTierFeePercentage = 2;  // 0.2%
 
     constructor() {
         owner = payable(msg.sender); // Setting the contract deployer as the owner
@@ -100,8 +106,9 @@ contract Escrow {
     // Confirm the item was received and release funds to the seller
     function confirmReceived(uint _transactionId) public onlyBuyer(_transactionId) inState(_transactionId, TransactionState.Shipped) {
         Transaction storage transaction = transactions[_transactionId];
-        uint256 fee = transaction.amount * feePercentage / 10000; // Calculate the 0.2% fee
-        uint256 amountAfterFee = transaction.amount - fee; // Calculate net amount for the seller
+        // Dynamic fee calculation based on the transaction amount
+        uint256 fee = calculateFee(transaction.amount);
+        uint256 amountAfterFee = transaction.amount - fee;
 
         if(transaction.isEther) {
             payable(transaction.seller).transfer(amountAfterFee); // Send net amount to the seller
@@ -129,6 +136,19 @@ contract Escrow {
         
         transaction.state = TransactionState.Cancelled;
         emit TransactionCancelled(_transactionId);
+    }
+
+    // Function to calculate dynamic fees based on the cost of the item
+    function calculateFee(uint256 _amount) public view returns (uint256) {
+        uint256 feePercentage;
+        if (_amount <= lowTierThreshold) {
+            feePercentage = lowTierFeePercentage;
+        } else if (_amount <= midTierThreshold) {
+            feePercentage = midTierFeePercentage;
+        } else {
+            feePercentage = highTierFeePercentage;
+        }
+        return _amount * feePercentage / 10000;
     }
 
     // Allow the contract to receive ETH directly
