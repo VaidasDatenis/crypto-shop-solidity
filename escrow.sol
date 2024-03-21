@@ -151,6 +151,26 @@ contract Escrow {
         return _amount * feePercentage / 10000;
     }
 
+    // Function to call from dApp to shod the status of thansaction
+    function getTransactionState(uint _transactionId) public view returns (string memory) {
+        require(_transactionId < transactions.length, "Transaction does not exist.");
+        
+        TransactionState state = transactions[_transactionId].state;
+        
+        // Return a human-readable state
+        if (state == TransactionState.Pending) {
+            return "Pending";
+        } else if (state == TransactionState.Shipped) {
+            return "Shipped";
+        } else if (state == TransactionState.Completed) {
+            return "Completed";
+        } else if (state == TransactionState.Cancelled) {
+            return "Cancelled";
+        } else {
+            return "Unknown";
+        }
+    }
+
     // Allow the contract to receive ETH directly
     receive() external payable {
         emit DirectDepositReceived(msg.sender, msg.value);
