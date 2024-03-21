@@ -16,7 +16,7 @@ contract Escrow {
         feeRecipient = owner; // Initially, the owner is also the fee recipient
     }
 
-    enum TransactionState { Pending, Shipped, Completed }
+    enum TransactionState { Pending, Shipped, Completed, Cancelled }
 
     struct Transaction {
         address buyer;
@@ -35,6 +35,7 @@ contract Escrow {
     event TransactionCreated(uint indexed transactionId, address indexed buyer, address indexed seller, uint256 amount, bool isEther, address tokenAddress);
     event TransactionShipped(uint indexed transactionId);
     event TransactionCompleted(uint indexed transactionId);
+    event TransactionCancelled(uint indexed transactionId);
     event FundsDeposited(uint indexed transactionId, uint256 amount, bool isEther);
     event FundsRefunded(uint indexed transactionId, uint256 amount, bool isEther);
 
@@ -113,6 +114,21 @@ contract Escrow {
 
         transaction.state = TransactionState.Completed;
         emit TransactionCompleted(_transactionId);
+    }
+
+    // Function to cancel a transaction and refund the buyer
+    function cancelTransaction(uint _transactionId) public onlyBuyer(_transactionId) inState(_transactionId, TransactionState.Pending) {
+        Transaction storage transaction = transactions[_transactionId];
+        
+        if(transaction.isEther) {
+            payable(transaction.buyer).transfer(transaction.amount);
+        } else {
+            IERC20 token = IERC20(transaction.tokenAddress);
+            require(token.transfer(transaction.buyer, transaction.amount), "Refund failed.");
+        }
+        
+        transaction.state = TransactionState.Cancelled;
+        emit TransactionCancelled(_transactionId);
     }
 
     // Allow the contract to receive ETH directly

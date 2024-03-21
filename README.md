@@ -1,48 +1,50 @@
-Our Ethereum-based Escrow Smart Contract is designed to facilitate secure and transparent transactions between buyers and sellers, handling both Ethereum (ETH) and ERC-20 token payments. This contract is especially useful for online marketplaces or any platform that requires a trustless escrow service.
+# Escrow Smart Contract
 
-## Key Features
+This Ethereum-based smart contract serves as an escrow mechanism, facilitating secure transactions between buyers and sellers. It supports both Ethereum (ETH) and ERC-20 token payments, incorporating a fee system and ensuring transaction integrity through defined states.
 
-### Fee Handling
+## Features
 
-- **Automated Fee Calculation**: For every transaction, the contract automatically calculates and deducts a 0.2% fee from the total amount. This ensures that the platform's operational costs are covered without manual intervention.
-- **Support for Multiple Currencies**: The fee deduction mechanism works seamlessly with both ETH and ERC-20 token transactions, ensuring flexibility and convenience for users.
+### Fee System
+- Automatically calculates a 0.2% fee from each transaction amount.
+- Supports fee deduction for both ETH and ERC-20 transactions.
+- Fee recipient address can be updated for operational flexibility.
 
-### Flexible Fee Recipient
+### Transaction States
+- Utilizes `Pending`, `Shipped`, `Completed`, and `Cancelled` states to manage the transaction lifecycle.
+- Includes modifiers to enforce correct state transitions and role-based actions.
 
-- **Dynamic Fee Recipient Address**: Through the `updateFeeRecipient` function, the contract owner can change the address that receives the transaction fees, adding a layer of operational flexibility.
-- **Secure Updates**: This critical function is restricted to the contract owner, with additional safeguards to prevent setting an invalid address.
+### Role-based Actions
+- Specific actions are restricted to either the buyer, seller, or contract owner, ensuring transactions proceed as intended.
 
-### Transaction State Management
-
-- **Defined Transaction States**: Utilizing enums, the contract delineates clear transaction states (Pending, Shipped, Completed), guiding the flow of transactions.
-- **Role and State Enforcement**: With modifiers (`inState`, `onlyBuyer`, `onlySeller`), the contract ensures actions are performed by authorized parties and in the correct order.
-
-### Transparency and Tracking
-
-- **Events for Visibility**: The contract emits detailed events for key actions (e.g., `TransactionCreated`, `TransactionCompleted`), enabling real-time tracking of activities and enhancing transparency.
+### ERC-20 Token Support
+- Facilitates transactions with any ERC-20 token, alongside ETH transactions.
 
 ### Direct ETH Deposits
+- Accepts direct ETH deposits through the `receive` and `fallback` functions.
 
-- **Support for Direct Deposits**: Implemented `receive` and `fallback` functions allow the contract to accept ETH directly, with emitted events logging these transactions.
+## Usage
 
-## How to Use
+### Creating a Transaction
+Buyers initiate transactions by specifying the seller, amount, and payment currency (ETH or ERC-20).
 
-1. **Deploy the Contract**: Deploy the escrow contract to your preferred Ethereum network (mainnet or testnet).
-2. **Set Up Transactions**: Buyers can initiate transactions specifying the seller and the amount. The contract supports both ETH and ERC-20 tokens.
-3. **Track and Update Transactions**: Sellers mark transactions as shipped, and buyers confirm receipt, with the contract handling state transitions and fee deductions automatically.
-4. **Fee Recipient Management**: Contract owners can update the fee recipient address as needed, ensuring flexibility in managing collected fees.
+### Updating Transaction State
+Sellers mark the transaction as shipped. Buyers confirm receipt, which releases funds to the seller and deducts the platform fee.
+
+### Cancelling a Transaction
+Buyers can cancel transactions in the `Pending` state, triggering a refund.
+
+### Fee Recipient Management
+The contract owner can update the fee recipient address, directing where transaction fees are sent.
 
 ## Development and Deployment
 
-- Ensure you have a development environment set up with tools like Truffle or Hardhat for deploying and interacting with smart contracts.
-- For testing, use networks like Ropsten or Rinkeby to avoid incurring real costs.
-- Always test thoroughly before deploying to the Ethereum mainnet.
+Deploy the contract using your preferred tools (e.g., Truffle, Hardhat) and interact with it through a web3-enabled frontend or directly via an Ethereum wallet.
 
-## Events and Tracking
+## Events for Tracking and Transparency
 
-- Monitor contract events using tools like Etherscan or a custom frontend integrated with web3 libraries to track transactions and contract interactions in real-time.
+The contract emits events for key actions (e.g., `TransactionCreated`, `TransactionCancelled`), enabling easy tracking of activities on the blockchain.
 
-## Security Considerations
+---
 
-- Regularly audit and review your contract code, especially when making updates or adjusting fee structures.
-- Consider engaging with professional auditors for comprehensive security checks.
+For detailed function documentation and best practices for interacting with the contract, refer to the inline comments within the contract code.
+"""
